@@ -1,2 +1,4 @@
 #!/usr/bin/env ruby
-require_relative '../github_analyzer'
+require_relative '../lib/github_analyzer'
+
+GitHubAnalyzer.start(ARGV)
