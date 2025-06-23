@@ -20,7 +20,7 @@ class GitHubAnalyzer < Thor
   def analyze
     puts "Starting CLI..."
     loop do
-      choice = @prompt.select("What would you like to analyze?", ["Repository", "User" ,"API Calls Left","Exit"])
+      choice = @prompt.select("What would you like to analyze?", ["Repository", "User" ,"API Calls Left","Web Interface","Exit"])
 
       case choice
       when "Repository"
@@ -56,6 +56,11 @@ class GitHubAnalyzer < Thor
         end
       when "API Calls Left"
         rate_limit_check()
+      when "Web Interface"
+        puts "Launching Sinatra Web App at http://localhost:4567"
+        pid = spawn("start cmd /k ruby ./lib/app.rb")
+        Process.detach(pid)
+        sleep(10) #time to start
       else
         puts @pastel.green("Goodbye!")
         break;

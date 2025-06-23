@@ -10,3 +10,7 @@ gem "tty-prompt"
 gem "pastel"
 gem 'faraday-retry'
 gem 'unicode_plot'
+gem 'sinatra'
+gem 'puma'
+gem 'rackup'
+gem 'webrick'

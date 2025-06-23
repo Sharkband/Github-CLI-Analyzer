@@ -1,5 +1,8 @@
 # Github-CLI-Analyzer
 
+This app only works on windows as of 2025-06-15
+
+bundle install (if your using bundler)
 
 create a .env file and put your Github token inside like
 
