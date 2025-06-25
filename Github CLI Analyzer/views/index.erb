@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  
+  <title>GitHub Analyzer</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>GitHub Analyzer</h1>
+  <div id="rate-limit-label"></div> 
+  <input id="username" placeholder="GitHub username" />
+  <div>
+    <button onclick="fetchRepos()">Show Repositories</button>
+    <button onclick="fetchButtons()">Show Recent Commits</button>
+    <button onclick="fetchProfile()">Show User Profile</button>
+    <button onclick="fetchAll()">Show All Info</button>
+  </div>
+
+  <div id="profile"><h2>Profile:</h2></div>
+  <div id="repositorys"><h2>Repositories:</h2></div>
+  <div id="commits"><h2>Commit History:</h2></div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
