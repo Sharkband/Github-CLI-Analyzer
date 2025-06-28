@@ -49,7 +49,7 @@ class GitHubWebApp < Sinatra::Base
     client = Octokit::Client.new(access_token: ENV['GITHUB_TOKEN'])
 
     begin
-      commits = client.commits("#{params[:username]}/#{params[:repo]}")
+      commits = client.commits("#{params[:username]}/#{params[:repo]}", per_page: 30)
       commits.map do |c|
         {
           message: c.commit.message,
@@ -103,6 +103,42 @@ class GitHubWebApp < Sinatra::Base
   rescue Octokit::Error => e
     status 500
     { error: "Failed to fetch rate limit: #{e.message}" }.to_json
+  end
+end
+
+get '/api/commit-activity/:username/:repo' do
+  content_type :json
+  client = Octokit::Client.new(access_token: ENV['GITHUB_TOKEN'])
+  username = params[:username]
+  repo = params[:repo]
+
+  begin
+    full_repo = "#{username}/#{repo}"
+    stats = client.commit_activity_stats(full_repo)
+
+    if stats.nil? || stats.empty?
+      status 202
+      return { message: "GitHub is preparing commit statistics. Try again in a few seconds." }.to_json
+    end
+
+    weekly_commits = stats.map do |week|
+      {
+        week_start: Time.at(week.week).strftime("%Y-%m-%d"),
+        total_commits: week.total
+      }
+    end
+
+    weekly_commits.to_json
+
+  rescue Octokit::NotFound
+    status 404
+    { error: "Repository not found" }.to_json
+  rescue Octokit::TooManyRequests
+    status 429
+    { error: "GitHub API rate limit exceeded" }.to_json
+  rescue => e
+    status 500
+    { error: "An error occurred: #{e.message}" }.to_json
   end
 end
 

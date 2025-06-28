@@ -1,4 +1,6 @@
 fetchRateLimit()
+let repoChartInstance = null;
+let commitsChartInstance = null;
 
 async function fetchRepos() {
   
@@ -12,12 +14,43 @@ async function fetchRepos() {
   
 
   if (res.ok) {
+    const repoNames = [];
+    const stars = [];
     
     data.forEach(repo => {
+      repoNames.push(repo.name)
+      stars.push(repo.Stars)
+
       output.innerHTML += `<p><strong><a href="${repo.url}" target="_blank">${repo.name}</a></strong>: ${repo.description || 'No description'}</p>`;
       output.innerHTML += `<ul><li>Open Issues: ${repo.OpenIssues}</li><li>Forks: ${repo.forks}</li><li>Stars: ${repo.Stars}</li><li>Watchers: ${repo.Watchers}</li><li>Language: ${repo.Language || 'None'}</li></ul>`
       
     });
+
+    //destroying chart if it exists
+    if (repoChartInstance !== null) {
+      repoChartInstance.destroy();
+    }
+    output.innerHTML += `<canvas id="repoChart" width="400" height="200"></canvas>`
+    const ctx = document.getElementById('repoChart').getContext('2d');
+    repoChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: repoNames,
+        datasets: [{
+          label: 'Stars per Repository',
+          data: stars,
+          backgroundColor: 'rgba(19, 87, 22, 0.6)',
+          borderColor: 'rgba(19, 87, 22, 0.6)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
   } else {
     output.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
   }
@@ -49,6 +82,19 @@ async function fetchCommits(repo) {
   fetchRateLimit()
   const data = await res.json();
   const output = document.getElementById('commits');
+
+  const resActivity = await fetch(`/api/commit-activity/${username}/${repo}`);
+  const stats = await resActivity.json();
+
+  if (!Array.isArray(stats)) {
+    const message = stats.message || stats.error || "Unexpected response from server.";
+    alert(`Could not load commit activity: ${message}`);
+    return;
+  }
+
+  const labels = stats.map(d => d.week_start);
+  const dataActivity = stats.map(d => d.total_commits);
+
   output.innerHTML = `<h2>Commits for ${repo}:</h2>`;
 
   if (res.ok) {
@@ -56,6 +102,34 @@ async function fetchCommits(repo) {
       output.innerHTML += `<p>${commit.message} — <em>${commit.author}</em></p>`;
     });
     output.innerHTML += `<button onclick="fetchButtons()">Back</button><br>`;
+
+    output.innerHTML += `<canvas id="commitsChart" width="600" height="300"></canvas>`
+
+    const ctx = document.getElementById('commitsChart').getContext('2d');
+
+    // Destroy existing chart to avoid stacking
+    if (commitsChartInstance) {
+      commitsChartInstance.destroy();
+    }
+
+    commitsChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: `Commits per Week – ${repo}`,
+          data: dataActivity,
+          fill: false,
+          borderColor: 'rgba(19, 87, 22, 0.6)',
+          tension: 0.3
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
   } else {
     output.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
   }
