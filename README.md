@@ -1,8 +1,10 @@
 # Github-CLI-Analyzer
 
-create a .env file and put your Github token inside like
+create a .env file and put your Github token inside like (you will be limited to 60 api calls without the github token)
 
 GITHUB_TOKEN=your_github_personal_access_token
+
+
 
 RUN LOCALLY:
 
