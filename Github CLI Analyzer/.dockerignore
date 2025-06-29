@@ -1,0 +1,7 @@
+.git
+log/
+tmp/
+.vscode/
+*.md
+*.log
+.env

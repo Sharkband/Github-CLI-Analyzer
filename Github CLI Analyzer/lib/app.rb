@@ -1,11 +1,11 @@
 require 'sinatra'
-require 'puma'
 require 'rackup'
 require 'json'
 require 'socket'
 require 'timeout'
 require 'octokit'
 require 'dotenv/load'
+require 'webrick'
 
 #This is for cntl+c to shutdown the app on windows
 Signal.trap("INT") do
@@ -16,6 +16,7 @@ end
 class GitHubWebApp < Sinatra::Base
   set :public_folder, File.expand_path('../../public', __FILE__)
   set :views, File.expand_path('../../views', __FILE__)
+  
 
   get '/' do
     erb :index
@@ -164,9 +165,15 @@ end
       exit 1
     else
       puts "✅ Starting GitHub Web App on port #{port}..."
+      
       set :server, 'webrick'
-      run! port: port
+      run! port: port, bind: '0.0.0.0'
     end
+  end
+
+  def self.start!(port = 4567)
+    set :server, 'webrick'
+  run! port: port, bind: '0.0.0.0'
   end
 end
 

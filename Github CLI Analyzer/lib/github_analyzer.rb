@@ -18,9 +18,10 @@ class GitHubAnalyzer < Thor
 
   desc "analyze", "Start interactive GitHub analysis"
   def analyze
+    serverPid = 0
     puts "Starting CLI..."
     loop do
-      choice = @prompt.select("What would you like to analyze?", ["Repository", "User" ,"API Calls Left","Web Interface","Exit"])
+      choice = @prompt.select("What would you like to analyze?", ["Repository", "User" ,"API Calls Left","Web Interface","Stop Web Server","Exit"])
 
       case choice
       when "Repository"
@@ -57,10 +58,24 @@ class GitHubAnalyzer < Thor
       when "API Calls Left"
         rate_limit_check()
       when "Web Interface"
-        puts "Launching Sinatra Web App at http://localhost:4567"
-        pid = spawn("start cmd /k ruby ./lib/app.rb")
+        if Gem.win_platform?
+          puts "Launching Sinatra Web App at http://localhost:4567 (Windows)"
+          pid = spawn("start", "cmd", "/k", "ruby", "./lib/app.rb")
+        else
+          puts "Launching Sinatra Web App at http://localhost:4567 (Linux/macOS)"
+          pid = spawn("ruby", "./lib/app.rb", [:out, :err] => "/dev/null")#, [:out, :err] => "/dev/null"
+        end
+        serverPid = pid;
         Process.detach(pid)
-        sleep(10) #time to start
+        
+        sleep(10) # time to start
+      when "Stop Web Server"
+        begin
+          Process.kill("KILL", serverPid)
+          puts "Sent KILL signal to server PID #{serverPid}"
+        rescue Errno::ESRCH
+          puts "Process #{serverPid} not found, maybe it already stopped"
+        end
       else
         puts @pastel.green("Goodbye!")
         break;
